@@ -72,6 +72,8 @@ export interface Credential {
   service: string;
   credentialType: string;
   maskedValue: string;
+  registryKeyId: number | null;
+  registryLabel: string | null;
   createdAt: string;
   updatedAt: string | null;
 }
@@ -98,15 +100,17 @@ export function useSaveCredential() {
       service,
       credentialType,
       value,
+      registryKeyId,
     }: {
       slug: string;
       service: string;
       credentialType: string;
-      value: string;
+      value?: string;
+      registryKeyId?: number;
     }) => {
       const { data } = await axios.post(
         `/api/integrations/${slug}/credentials`,
-        { service, credentialType, value }
+        { service, credentialType, value, registryKeyId }
       );
       return data;
     },
@@ -115,6 +119,27 @@ export function useSaveCredential() {
         queryKey: ['credentials', variables.slug],
       });
     },
+  });
+}
+
+export interface JustCallCampaign {
+  id: number;
+  name: string;
+  type: string;
+  status: string;
+}
+
+export function useJustCallCampaigns(slug: string) {
+  return useQuery<JustCallCampaign[]>({
+    queryKey: ['justcall-campaigns', slug],
+    queryFn: async () => {
+      const { data } = await axios.get(
+        `/api/integrations/${slug}/campaigns`
+      );
+      return data;
+    },
+    enabled: !!slug,
+    staleTime: 5 * 60 * 1000,
   });
 }
 

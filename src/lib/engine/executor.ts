@@ -2,6 +2,7 @@ import { db } from '@/lib/db';
 import {
   integrations,
   apiCredentials,
+  apiKeyRegistry,
   webhookEvents,
   dataTransfers,
   fieldMappings,
@@ -22,10 +23,26 @@ async function getDecryptedCredentials(
   const result: Record<string, DecryptedCredentials> = {};
   for (const cred of creds) {
     if (!result[cred.service]) result[cred.service] = {};
-    result[cred.service][cred.credentialType] = decrypt(
-      cred.encryptedValue,
-      cred.iv
-    );
+
+    if (cred.registryKeyId) {
+      // Resolve from central registry
+      const [regKey] = await db
+        .select()
+        .from(apiKeyRegistry)
+        .where(eq(apiKeyRegistry.id, cred.registryKeyId));
+      if (regKey) {
+        result[cred.service][cred.credentialType] = decrypt(
+          regKey.encryptedValue,
+          regKey.iv
+        );
+      }
+    } else if (cred.encryptedValue && cred.iv) {
+      // Use inline credential
+      result[cred.service][cred.credentialType] = decrypt(
+        cred.encryptedValue,
+        cred.iv
+      );
+    }
   }
   return result;
 }

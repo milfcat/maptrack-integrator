@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { integrations, apiCredentials } from '@/lib/db/schema';
+import { integrations, apiCredentials, apiKeyRegistry } from '@/lib/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { encrypt, maskValue, decrypt } from '@/lib/crypto';
 
@@ -28,15 +28,37 @@ export async function GET(
       .from(apiCredentials)
       .where(eq(apiCredentials.integrationId, integration.id));
 
-    // Return masked values
-    const masked = creds.map((c) => ({
-      id: c.id,
-      service: c.service,
-      credentialType: c.credentialType,
-      maskedValue: maskValue(decrypt(c.encryptedValue, c.iv)),
-      createdAt: c.createdAt,
-      updatedAt: c.updatedAt,
-    }));
+    // For credentials linked to registry, resolve the registry entry
+    const masked = await Promise.all(
+      creds.map(async (c) => {
+        let maskedValue = '';
+        let registryLabel: string | null = null;
+
+        if (c.registryKeyId) {
+          const [regKey] = await db
+            .select()
+            .from(apiKeyRegistry)
+            .where(eq(apiKeyRegistry.id, c.registryKeyId));
+          if (regKey) {
+            maskedValue = maskValue(decrypt(regKey.encryptedValue, regKey.iv));
+            registryLabel = regKey.label;
+          }
+        } else if (c.encryptedValue && c.iv) {
+          maskedValue = maskValue(decrypt(c.encryptedValue, c.iv));
+        }
+
+        return {
+          id: c.id,
+          service: c.service,
+          credentialType: c.credentialType,
+          maskedValue,
+          registryKeyId: c.registryKeyId,
+          registryLabel,
+          createdAt: c.createdAt,
+          updatedAt: c.updatedAt,
+        };
+      })
+    );
 
     return NextResponse.json(masked);
   } catch (error) {
@@ -56,11 +78,18 @@ export async function POST(
 
   try {
     const body = await request.json();
-    const { service, credentialType, value } = body;
+    const { service, credentialType, value, registryKeyId } = body;
 
-    if (!service || !credentialType || !value) {
+    if (!service || !credentialType) {
       return NextResponse.json(
-        { error: 'service, credentialType, and value are required' },
+        { error: 'service and credentialType are required' },
+        { status: 400 }
+      );
+    }
+
+    if (!value && !registryKeyId) {
+      return NextResponse.json(
+        { error: 'Either value or registryKeyId must be provided' },
         { status: 400 }
       );
     }
@@ -77,7 +106,20 @@ export async function POST(
       );
     }
 
-    const { encrypted, iv } = encrypt(value);
+    // If linking to registry, verify the key exists
+    if (registryKeyId) {
+      const [regKey] = await db
+        .select()
+        .from(apiKeyRegistry)
+        .where(eq(apiKeyRegistry.id, registryKeyId));
+
+      if (!regKey) {
+        return NextResponse.json(
+          { error: 'Registry key not found' },
+          { status: 404 }
+        );
+      }
+    }
 
     // Upsert credential
     const [existing] = await db
@@ -91,19 +133,51 @@ export async function POST(
         )
       );
 
-    if (existing) {
-      await db
-        .update(apiCredentials)
-        .set({ encryptedValue: encrypted, iv, updatedAt: new Date() })
-        .where(eq(apiCredentials.id, existing.id));
+    if (registryKeyId) {
+      // Link to registry key (clear any inline value)
+      const data = {
+        registryKeyId,
+        encryptedValue: null,
+        iv: null,
+        updatedAt: new Date(),
+      };
+
+      if (existing) {
+        await db
+          .update(apiCredentials)
+          .set(data)
+          .where(eq(apiCredentials.id, existing.id));
+      } else {
+        await db.insert(apiCredentials).values({
+          integrationId: integration.id,
+          service,
+          credentialType,
+          ...data,
+        });
+      }
     } else {
-      await db.insert(apiCredentials).values({
-        integrationId: integration.id,
-        service,
-        credentialType,
+      // Store inline value (clear any registry link)
+      const { encrypted, iv } = encrypt(value);
+      const data = {
         encryptedValue: encrypted,
         iv,
-      });
+        registryKeyId: null,
+        updatedAt: new Date(),
+      };
+
+      if (existing) {
+        await db
+          .update(apiCredentials)
+          .set(data)
+          .where(eq(apiCredentials.id, existing.id));
+      } else {
+        await db.insert(apiCredentials).values({
+          integrationId: integration.id,
+          service,
+          credentialType,
+          ...data,
+        });
+      }
     }
 
     return NextResponse.json({ status: 'saved' });

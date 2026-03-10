@@ -31,6 +31,26 @@ export const integrations = pgTable(
   ]
 );
 
+export const apiKeyRegistry = pgTable(
+  'api_key_registry',
+  {
+    id: serial('id').primaryKey(),
+    label: text('label').notNull(),
+    service: text('service').notNull(),
+    credentialType: text('credential_type').notNull(),
+    encryptedValue: text('encrypted_value').notNull(),
+    iv: text('iv').notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at'),
+  },
+  (table) => [
+    uniqueIndex('idx_registry_service_type').on(
+      table.service,
+      table.credentialType
+    ),
+  ]
+);
+
 export const apiCredentials = pgTable(
   'api_credentials',
   {
@@ -40,8 +60,11 @@ export const apiCredentials = pgTable(
       .notNull(),
     service: text('service').notNull(),
     credentialType: text('credential_type').notNull(),
-    encryptedValue: text('encrypted_value').notNull(),
-    iv: text('iv').notNull(),
+    encryptedValue: text('encrypted_value'),
+    iv: text('iv'),
+    registryKeyId: integer('registry_key_id').references(
+      () => apiKeyRegistry.id
+    ),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at'),
   },

@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
 import { Providers } from './providers';
-import { Sidebar } from '@/components/shared/sidebar';
+import { AppShell } from '@/components/shared/app-shell';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -28,17 +28,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <Providers>
-          <div className="flex h-screen overflow-hidden">
-            <Sidebar />
-            <main className="flex-1 overflow-y-auto">
-              <div className="p-6">{children}</div>
-            </main>
-          </div>
+          <AppShell>{children}</AppShell>
         </Providers>
       </body>
     </html>

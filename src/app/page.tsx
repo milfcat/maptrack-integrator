@@ -1,24 +1,24 @@
 'use client';
 
 import { PageHeader } from '@/components/shared/page-header';
-import { StatsCards } from '@/components/dashboard/stats-cards';
-import { ActivityChart } from '@/components/dashboard/activity-chart';
+import { StatsCards, StatsCardsSkeleton } from '@/components/dashboard/stats-cards';
+import { ActivityChart, ActivityChartSkeleton } from '@/components/dashboard/activity-chart';
 import { useStats } from '@/hooks/use-stats';
 import { useLogs } from '@/hooks/use-logs';
 import { StatusBadge } from '@/components/logs/status-badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Inbox } from 'lucide-react';
 
 export default function DashboardPage() {
   const { data: stats, isLoading: statsLoading } = useStats();
   const { data: logs, isLoading: logsLoading } = useLogs({ limit: 10 });
-
-  if (statsLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <p className="text-muted-foreground">Loading dashboard...</p>
-      </div>
-    );
-  }
 
   const defaultStats = {
     totalIntegrations: 0,
@@ -38,27 +38,46 @@ export default function DashboardPage() {
       />
 
       <div className="space-y-6">
-        <StatsCards stats={stats ?? defaultStats} />
+        {statsLoading ? (
+          <StatsCardsSkeleton />
+        ) : (
+          <StatsCards stats={stats ?? defaultStats} />
+        )}
 
         <div className="grid gap-6 lg:grid-cols-2">
-          <ActivityChart data={stats?.weeklyActivity ?? []} />
+          {statsLoading ? (
+            <ActivityChartSkeleton />
+          ) : (
+            <ActivityChart data={stats?.weeklyActivity ?? []} />
+          )}
 
           <Card>
             <CardHeader>
               <CardTitle>Recent Events</CardTitle>
+              <CardDescription>Latest webhook activity</CardDescription>
             </CardHeader>
             <CardContent>
               {logsLoading ? (
-                <p className="text-sm text-muted-foreground">Loading...</p>
-              ) : logs?.events && logs.events.length > 0 ? (
                 <div className="space-y-3">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <div key={i} className="flex items-center justify-between py-2">
+                      <div className="space-y-1.5">
+                        <Skeleton className="h-4 w-28" />
+                        <Skeleton className="h-3 w-40" />
+                      </div>
+                      <Skeleton className="h-5 w-16 rounded-full" />
+                    </div>
+                  ))}
+                </div>
+              ) : logs?.events && logs.events.length > 0 ? (
+                <div className="space-y-0">
                   {logs.events.map((event) => (
                     <div
                       key={event.id}
-                      className="flex items-center justify-between border-b pb-2 last:border-0"
+                      className="flex items-center justify-between border-b py-3 last:border-0 last:pb-0 first:pt-0"
                     >
-                      <div>
-                        <p className="text-sm font-medium">
+                      <div className="min-w-0 flex-1 pr-4">
+                        <p className="text-sm font-medium truncate">
                           {event.eventType}
                         </p>
                         <p className="text-xs text-muted-foreground">
@@ -71,9 +90,15 @@ export default function DashboardPage() {
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-muted-foreground">
-                  No events yet. Configure an integration to get started.
-                </p>
+                <div className="flex flex-col items-center justify-center py-12 text-center">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted mb-3">
+                    <Inbox className="h-6 w-6 text-muted-foreground" />
+                  </div>
+                  <p className="text-sm font-medium">No events yet</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Configure an integration to get started
+                  </p>
+                </div>
               )}
             </CardContent>
           </Card>

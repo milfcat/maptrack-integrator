@@ -1,11 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { integrations, webhookEvents } from '@/lib/db/schema';
+import { integrations, webhookEvents, apiCredentials, apiKeyRegistry } from '@/lib/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { getHandler } from '@/lib/engine/registry';
 import { enqueueJob } from '@/lib/jobs/queue';
 import { decrypt } from '@/lib/crypto';
-import { apiCredentials } from '@/lib/db/schema';
 
 export async function POST(
   request: NextRequest,
@@ -57,10 +56,24 @@ export async function POST(
 
     const credentials: Record<string, string> = {};
     for (const cred of creds) {
-      credentials[cred.credentialType] = decrypt(
-        cred.encryptedValue,
-        cred.iv
-      );
+      if (cred.registryKeyId) {
+        // Resolve from central registry
+        const [regKey] = await db
+          .select()
+          .from(apiKeyRegistry)
+          .where(eq(apiKeyRegistry.id, cred.registryKeyId));
+        if (regKey) {
+          credentials[cred.credentialType] = decrypt(
+            regKey.encryptedValue,
+            regKey.iv
+          );
+        }
+      } else if (cred.encryptedValue && cred.iv) {
+        credentials[cred.credentialType] = decrypt(
+          cred.encryptedValue,
+          cred.iv
+        );
+      }
     }
 
     // Validate webhook
