@@ -23,15 +23,12 @@ export interface JustCallResponse {
 export interface JustCallCampaign {
   id: number;
   name: string;
-  type: string;
-  status: string;
 }
 
 interface JustCallCampaignsResponse {
   status: string;
+  count: number;
   data: JustCallCampaign[];
-  current_page: number;
-  last_page: number;
 }
 
 export async function createContact(
@@ -60,28 +57,17 @@ export async function listCampaigns(
   apiKey: string,
   apiSecret: string
 ): Promise<JustCallCampaign[]> {
-  const allCampaigns: JustCallCampaign[] = [];
-  let page = 1;
+  await waitForToken('justcall');
 
-  while (true) {
-    await waitForToken('justcall');
+  const response = await axios.get<JustCallCampaignsResponse>(
+    'https://api.justcall.io/v1/autodialer/campaigns/list',
+    {
+      headers: {
+        Authorization: `${apiKey}:${apiSecret}`,
+        Accept: 'application/json',
+      },
+    }
+  );
 
-    const response = await axios.get<JustCallCampaignsResponse>(
-      `${BASE_URL}/sales-dialer/campaigns`,
-      {
-        params: { page, per_page: 100 },
-        headers: {
-          Authorization: `${apiKey}:${apiSecret}`,
-          Accept: 'application/json',
-        },
-      }
-    );
-
-    allCampaigns.push(...response.data.data);
-
-    if (page >= response.data.last_page) break;
-    page++;
-  }
-
-  return allCampaigns;
+  return response.data.data;
 }

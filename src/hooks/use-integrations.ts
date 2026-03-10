@@ -125,8 +125,6 @@ export function useSaveCredential() {
 export interface JustCallCampaign {
   id: number;
   name: string;
-  type: string;
-  status: string;
 }
 
 export function useJustCallCampaigns(slug: string) {
