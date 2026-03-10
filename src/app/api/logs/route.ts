@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { webhookEvents, dataTransfers } from '@/lib/db/schema';
-import { eq, desc, and, sql } from 'drizzle-orm';
+import { eq, desc, and, sql, inArray } from 'drizzle-orm';
 
 export async function GET(request: NextRequest) {
   try {
@@ -47,7 +47,7 @@ export async function GET(request: NextRequest) {
         ? await db
             .select()
             .from(dataTransfers)
-            .where(sql`${dataTransfers.webhookEventId} = ANY(${eventIds})`)
+            .where(inArray(dataTransfers.webhookEventId, eventIds))
             .orderBy(dataTransfers.createdAt)
         : [];
 

@@ -1,6 +1,6 @@
 import { db } from '@/lib/db';
 import { processingJobs } from '@/lib/db/schema';
-import { eq, and, sql, lt, isNull, or } from 'drizzle-orm';
+import { eq, and, sql, lt, isNull, or, inArray } from 'drizzle-orm';
 
 export async function enqueueJob(
   type: string,
@@ -46,7 +46,7 @@ export async function claimJobs(type: string, limit: number) {
       lockedAt: now,
       attempts: sql`${processingJobs.attempts} + 1`,
     })
-    .where(sql`${processingJobs.id} = ANY(${jobIds})`);
+    .where(inArray(processingJobs.id, jobIds));
 
   return jobs;
 }
