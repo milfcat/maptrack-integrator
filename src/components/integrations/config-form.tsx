@@ -73,7 +73,7 @@ export function ConfigForm({ integration }: { integration: Integration }) {
   );
 
   return (
-    <Card>
+    <Card className="shadow-sm">
       <CardHeader>
         <CardTitle>Destination Configuration</CardTitle>
         <CardDescription>

@@ -1,8 +1,8 @@
 'use client';
 
 import {
-  BarChart,
-  Bar,
+  AreaChart,
+  Area,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -36,61 +36,78 @@ export function ActivityChart({ data }: { data: ActivityData[] }) {
   }));
 
   return (
-    <Card>
+    <Card className="shadow-sm">
       <CardHeader>
         <CardTitle>Weekly Activity</CardTitle>
         <CardDescription>Events processed over the last 7 days</CardDescription>
       </CardHeader>
       <CardContent>
         {formatted.length > 0 ? (
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={formatted} barGap={2}>
+          <ResponsiveContainer width="100%" height={280}>
+            <AreaChart data={formatted}>
+              <defs>
+                <linearGradient id="completedGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.15} />
+                  <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                </linearGradient>
+                <linearGradient id="failedGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#ef4444" stopOpacity={0.15} />
+                  <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
+                </linearGradient>
+              </defs>
               <CartesianGrid
                 strokeDasharray="3 3"
-                className="stroke-border"
+                stroke="var(--border)"
                 vertical={false}
               />
               <XAxis
                 dataKey="date"
-                className="text-xs"
+                fontSize={11}
                 tickLine={false}
                 axisLine={false}
+                tick={{ fill: 'var(--muted-foreground)' }}
               />
               <YAxis
-                className="text-xs"
+                fontSize={11}
                 tickLine={false}
                 axisLine={false}
                 width={30}
+                tick={{ fill: 'var(--muted-foreground)' }}
               />
               <Tooltip
                 contentStyle={{
                   borderRadius: '8px',
                   border: '1px solid var(--border)',
-                  boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
+                  backgroundColor: 'var(--card)',
+                  boxShadow: '0 4px 12px rgb(0 0 0 / 0.08)',
                   fontSize: '12px',
                 }}
               />
               <Legend
                 iconType="circle"
-                iconSize={8}
-                wrapperStyle={{ fontSize: '12px', paddingTop: '8px' }}
+                iconSize={7}
+                wrapperStyle={{ fontSize: '11px', paddingTop: '8px' }}
               />
-              <Bar
+              <Area
+                type="monotone"
                 dataKey="completed"
-                fill="oklch(0.65 0.18 155)"
+                stroke="#3b82f6"
+                strokeWidth={2}
+                fill="url(#completedGradient)"
                 name="Completed"
-                radius={[4, 4, 0, 0]}
               />
-              <Bar
+              <Area
+                type="monotone"
                 dataKey="failed"
-                fill="oklch(0.65 0.2 25)"
+                stroke="#ef4444"
+                strokeWidth={2}
+                fill="url(#failedGradient)"
                 name="Failed"
-                radius={[4, 4, 0, 0]}
               />
-            </BarChart>
+            </AreaChart>
           </ResponsiveContainer>
         ) : (
-          <div className="flex h-[300px] items-center justify-center text-sm text-muted-foreground">
+          <div className="flex h-[280px] items-center justify-center text-sm text-muted-foreground">
             No activity data available yet
           </div>
         )}
@@ -101,23 +118,13 @@ export function ActivityChart({ data }: { data: ActivityData[] }) {
 
 export function ActivityChartSkeleton() {
   return (
-    <Card>
+    <Card className="shadow-sm">
       <CardHeader>
         <Skeleton className="h-5 w-32" />
         <Skeleton className="h-4 w-56" />
       </CardHeader>
       <CardContent>
-        <div className="flex h-[300px] items-end gap-3 pb-6 pt-2">
-          {Array.from({ length: 7 }).map((_, i) => (
-            <div key={i} className="flex-1 flex flex-col gap-1 items-center">
-              <Skeleton
-                className="w-full rounded-t"
-                style={{ height: `${40 + Math.random() * 60}%` }}
-              />
-              <Skeleton className="h-3 w-8 mt-2" />
-            </div>
-          ))}
-        </div>
+        <Skeleton className="h-[280px] w-full rounded-lg" />
       </CardContent>
     </Card>
   );

@@ -126,7 +126,7 @@ export function CredentialForm({ slug }: { slug: string }) {
   };
 
   return (
-    <Card>
+    <Card className="shadow-sm">
       <CardHeader>
         <CardTitle>API Credentials</CardTitle>
         <CardDescription>

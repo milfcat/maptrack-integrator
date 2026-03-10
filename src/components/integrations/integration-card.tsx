@@ -18,21 +18,21 @@ export function IntegrationCard({
   const toggleMutation = useToggleIntegration();
 
   return (
-    <Card className="group relative hover:ring-2 hover:ring-primary/20 transition-all duration-200">
+    <Card className="group shadow-sm hover:shadow-md transition-shadow duration-200">
       <CardHeader className="flex flex-row items-start justify-between space-y-0">
         <Link
           href={`/integrations/${integration.slug}`}
           className="flex-1 min-w-0"
         >
-          <CardTitle className="text-base group-hover:text-primary transition-colors">
+          <CardTitle className="text-sm font-semibold group-hover:text-primary transition-colors">
             {integration.name}
           </CardTitle>
-          <div className="flex items-center gap-2 mt-2.5">
-            <Badge variant="secondary" className="text-xs">
+          <div className="flex items-center gap-2 mt-2">
+            <Badge variant="secondary" className="text-[11px] font-medium">
               {integration.sourceService}
             </Badge>
             <ArrowRight className="h-3 w-3 text-muted-foreground shrink-0" />
-            <Badge variant="secondary" className="text-xs">
+            <Badge variant="secondary" className="text-[11px] font-medium">
               {integration.destinationService}
             </Badge>
           </div>
@@ -51,11 +51,9 @@ export function IntegrationCard({
           </p>
         )}
         {integration.stats24h && (
-          <div className="flex items-center gap-3 text-xs">
-            <span className="text-muted-foreground">
-              {integration.stats24h.total} events (24h)
-            </span>
-            <span className="text-muted-foreground">&middot;</span>
+          <div className="flex items-center gap-3 text-xs text-muted-foreground">
+            <span>{integration.stats24h.total} events (24h)</span>
+            <span>&middot;</span>
             <span
               className={cn(
                 integration.stats24h.successRate >= 90
@@ -67,7 +65,7 @@ export function IntegrationCard({
             </span>
             {integration.stats24h.failed > 0 && (
               <>
-                <span className="text-muted-foreground">&middot;</span>
+                <span>&middot;</span>
                 <span className="text-red-600 dark:text-red-400">
                   {integration.stats24h.failed} failed
                 </span>
@@ -89,10 +87,10 @@ export function IntegrationCard({
 
 export function IntegrationCardSkeleton() {
   return (
-    <Card>
+    <Card className="shadow-sm">
       <CardHeader className="flex flex-row items-start justify-between space-y-0">
         <div className="space-y-2 flex-1">
-          <Skeleton className="h-5 w-40" />
+          <Skeleton className="h-4 w-40" />
           <div className="flex items-center gap-2">
             <Skeleton className="h-5 w-20 rounded-full" />
             <Skeleton className="h-3 w-3" />

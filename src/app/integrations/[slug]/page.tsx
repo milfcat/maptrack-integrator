@@ -150,7 +150,7 @@ export default function IntegrationDetailPage({
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4 mt-6">
-          <Card>
+          <Card className="shadow-sm">
             <CardHeader>
               <CardTitle>Webhook URL</CardTitle>
               <CardDescription>
@@ -160,7 +160,7 @@ export default function IntegrationDetailPage({
             </CardHeader>
             <CardContent>
               <div className="flex items-center gap-2">
-                <code className="flex-1 rounded-lg bg-muted p-3 text-sm font-mono break-all">
+                <code className="flex-1 rounded-md bg-muted/60 border border-border p-3 text-sm font-mono break-all">
                   {webhookUrl}
                 </code>
                 <Button variant="outline" size="sm" onClick={handleCopy}>
@@ -175,7 +175,7 @@ export default function IntegrationDetailPage({
           </Card>
 
           {integration.description && (
-            <Card>
+            <Card className="shadow-sm">
               <CardHeader>
                 <CardTitle>Description</CardTitle>
               </CardHeader>
@@ -197,7 +197,7 @@ export default function IntegrationDetailPage({
         </TabsContent>
 
         <TabsContent value="logs" className="mt-6">
-          <Card>
+          <Card className="shadow-sm">
             <CardHeader>
               <CardTitle>Recent Events</CardTitle>
               <CardDescription>

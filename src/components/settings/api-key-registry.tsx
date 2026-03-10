@@ -111,7 +111,7 @@ export function ApiKeyRegistry() {
     type;
 
   return (
-    <Card>
+    <Card className="shadow-sm">
       <CardHeader className="flex flex-row items-start justify-between">
         <div>
           <CardTitle className="flex items-center gap-2">

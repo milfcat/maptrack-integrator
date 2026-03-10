@@ -18,7 +18,7 @@ export function ThemeToggle() {
 
   if (!mounted) {
     return (
-      <Button variant="ghost" size="icon-sm" className="text-muted-foreground">
+      <Button variant="ghost" size="icon-sm" className="text-sidebar-foreground/50">
         <Sun className="h-4 w-4" />
       </Button>
     );
@@ -35,7 +35,7 @@ export function ThemeToggle() {
             variant="ghost"
             size="icon-sm"
             onClick={() => setTheme(next)}
-            className="text-muted-foreground hover:text-foreground"
+            className="text-sidebar-foreground/50 hover:text-sidebar-foreground hover:bg-sidebar-accent"
           />
         }
       >

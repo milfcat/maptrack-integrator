@@ -51,7 +51,7 @@ export default function DashboardPage() {
             <ActivityChart data={stats?.weeklyActivity ?? []} />
           )}
 
-          <Card>
+          <Card className="shadow-sm">
             <CardHeader>
               <CardTitle>Recent Events</CardTitle>
               <CardDescription>Latest webhook activity</CardDescription>

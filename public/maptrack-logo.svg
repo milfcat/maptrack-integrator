@@ -1,8 +1,9 @@
-<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <!-- Location pin shape -->
-  <path d="M16 2C10.48 2 6 6.48 6 12c0 7.5 10 18 10 18s10-10.5 10-18c0-5.52-4.48-10-10-10z" fill="#001B3F"/>
-  <!-- Inner circle - cyan accent -->
-  <circle cx="14" cy="11" r="4" fill="#00D4F5"/>
-  <!-- Dark overlay for half-circle effect -->
-  <path d="M16 7a4 4 0 0 1 0 8" fill="#001B3F" opacity="0.15"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 76" fill="none">
+  <!-- Semicircular arch -->
+  <path d="M12 44 A22 22 0 0 1 56 44" stroke="#001B3F" stroke-width="11" stroke-linecap="round" fill="none"/>
+  <!-- Left leg extending to pin point -->
+  <line x1="12" y1="44" x2="7" y2="50" stroke="#001B3F" stroke-width="11" stroke-linecap="round"/>
+  <polygon points="2,48 20,76 30,58" fill="#001B3F"/>
+  <!-- Cyan accent dot -->
+  <circle cx="21" cy="48" r="9" fill="#00D4F5"/>
 </svg>

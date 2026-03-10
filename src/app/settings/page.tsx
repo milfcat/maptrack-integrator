@@ -59,7 +59,7 @@ export default function SettingsPage() {
         <ApiKeyRegistry />
 
         <div className="grid gap-6 lg:grid-cols-2">
-          <Card>
+          <Card className="shadow-sm">
             <CardHeader>
               <CardTitle>System Status</CardTitle>
               <CardDescription>
@@ -108,7 +108,7 @@ export default function SettingsPage() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="shadow-sm">
             <CardHeader>
               <CardTitle>Environment</CardTitle>
               <CardDescription>
