@@ -5,6 +5,7 @@ import { PageHeader } from '@/components/shared/page-header';
 import { useIntegration } from '@/hooks/use-integrations';
 import { useLogs } from '@/hooks/use-logs';
 import { CredentialForm } from '@/components/integrations/credential-form';
+import { ConfigForm } from '@/components/integrations/config-form';
 import { EventLogTable } from '@/components/logs/event-log-table';
 import { StatusBadge } from '@/components/logs/status-badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -96,16 +97,7 @@ export default function IntegrationDetailPage({
         </TabsContent>
 
         <TabsContent value="config" className="mt-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Destination Configuration</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <pre className="rounded bg-muted p-4 text-sm font-mono overflow-auto">
-                {JSON.stringify(integration.destinationConfig, null, 2)}
-              </pre>
-            </CardContent>
-          </Card>
+          <ConfigForm integration={integration} />
         </TabsContent>
 
         <TabsContent value="logs" className="mt-4">
