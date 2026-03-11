@@ -12,6 +12,9 @@ export interface JustCallContactPayload {
   notes?: string;
   campaign_id?: string;
   other_phones?: string[];
+  address?: string;
+  occupation?: string;
+  linkedin_url?: string;
 }
 
 export interface JustCallResponse {
@@ -40,7 +43,7 @@ export async function createContact(
 
   // JustCall Sales Dialer API expects a single "name" field
   const name = [payload.firstname, payload.lastname].filter(Boolean).join(' ');
-  const body = {
+  const body: Record<string, unknown> = {
     name: name || undefined,
     phone_number: payload.phone,
     email: payload.email,
@@ -48,6 +51,11 @@ export async function createContact(
     notes: payload.notes,
     campaign_id: payload.campaign_id ? Number(payload.campaign_id) : undefined,
   };
+
+  // Include additional contact fields if available
+  if (payload.address) body.address = payload.address;
+  if (payload.occupation) body.occupation = payload.occupation;
+  if (payload.linkedin_url) body.linkedin_url = payload.linkedin_url;
 
   // Use campaign-specific endpoint when campaign_id is provided
   const endpoint = payload.campaign_id

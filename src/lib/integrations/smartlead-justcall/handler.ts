@@ -84,6 +84,8 @@ export const smartleadJustcallHandler: IntegrationHandler = {
         website: lead.website,
         location: lead.location,
         linkedin_profile: lead.linkedin_profile,
+        title: lead.title,
+        position: lead.position,
         custom_fields: lead.custom_fields,
         campaign_name: data.campaign_name,
         campaign_id: data.campaign_id,
@@ -103,13 +105,22 @@ export const smartleadJustcallHandler: IntegrationHandler = {
 
     // Default transformation
     const data = enrichedData.enriched;
+    // Build notes with campaign info
+    const noteLines = [
+      `Added from SmartLead campaign: ${data.campaign_name} on ${new Date().toISOString().split('T')[0]}`,
+    ];
+    if (data.website) noteLines.push(`Website: ${data.website}`);
+
     return {
       firstname: data.first_name || '',
       lastname: data.last_name || '',
       phone: data.phone_number || '',
       email: data.email || '',
       company: data.company_name || '',
-      notes: `Added from SmartLead campaign: ${data.campaign_name} on ${new Date().toISOString().split('T')[0]}`,
+      address: data.location || '',
+      occupation: data.position || data.title || '',
+      linkedin_url: data.linkedin_profile || '',
+      notes: noteLines.join('\n'),
     };
   },
 
@@ -145,6 +156,9 @@ export const smartleadJustcallHandler: IntegrationHandler = {
         company: (transformedData.company as string) || undefined,
         notes: (transformedData.notes as string) || undefined,
         campaign_id: (destinationConfig.campaign_id as string) || undefined,
+        address: (transformedData.address as string) || undefined,
+        occupation: (transformedData.occupation as string) || undefined,
+        linkedin_url: (transformedData.linkedin_url as string) || undefined,
       };
 
       const response = await createContact(payload, apiKey, apiSecret);

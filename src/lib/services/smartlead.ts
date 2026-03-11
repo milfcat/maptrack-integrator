@@ -14,6 +14,8 @@ export interface SmartLeadLead {
   location: string;
   linkedin_profile: string;
   company_url: string;
+  title: string;
+  position: string;
   custom_fields: Record<string, string>;
   is_unsubscribed: boolean;
   lead_campaign_data: Array<{
