@@ -158,6 +158,29 @@ export const processingJobs = pgTable(
   ]
 );
 
+export const campaignMappings = pgTable(
+  'campaign_mappings',
+  {
+    id: serial('id').primaryKey(),
+    integrationId: integer('integration_id')
+      .references(() => integrations.id)
+      .notNull(),
+    sourceCampaignId: text('source_campaign_id').notNull(),
+    sourceCampaignName: text('source_campaign_name'),
+    destinationCampaignId: text('destination_campaign_id').notNull(),
+    destinationCampaignName: text('destination_campaign_name'),
+    enabled: boolean('enabled').default(true).notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+  },
+  (table) => [
+    index('idx_campaign_mappings_integration').on(table.integrationId),
+    uniqueIndex('idx_campaign_mappings_unique').on(
+      table.integrationId,
+      table.sourceCampaignId
+    ),
+  ]
+);
+
 export const fieldMappings = pgTable(
   'field_mappings',
   {

@@ -6,8 +6,9 @@ import {
   webhookEvents,
   dataTransfers,
   fieldMappings,
+  campaignMappings,
 } from '@/lib/db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 import { decrypt } from '@/lib/crypto';
 import { getHandler } from './registry';
 import type { DecryptedCredentials, FieldMapping } from './types';
@@ -112,7 +113,7 @@ export async function executeIntegration(
       step: 'enrich',
       direction: 'outbound',
       service: handler.sourceService,
-      requestUrl: `SmartLead API - Lead enrichment`,
+      requestUrl: `${handler.sourceService} API - Enrichment`,
       requestMethod: 'GET',
       status: 'success',
       durationMs: enrichDuration,
@@ -134,8 +135,28 @@ export async function executeIntegration(
 
     const transformedData = handler.transform(enrichedData, fieldMappingList);
 
-    // Step 3: Push
-    const destConfig = (integration.destinationConfig as Record<string, unknown>) ?? {};
+    // Step 3: Resolve campaign mapping
+    const destConfig = { ...((integration.destinationConfig as Record<string, unknown>) ?? {}) };
+    const sourceCampaignId = enrichedData.enriched?.campaign_id;
+
+    if (sourceCampaignId) {
+      const [mapping] = await db
+        .select()
+        .from(campaignMappings)
+        .where(
+          and(
+            eq(campaignMappings.integrationId, integration.id),
+            eq(campaignMappings.sourceCampaignId, String(sourceCampaignId)),
+            eq(campaignMappings.enabled, true)
+          )
+        );
+
+      if (mapping) {
+        destConfig.campaign_id = mapping.destinationCampaignId;
+      }
+    }
+
+    // Step 4: Push
     const pushStart = Date.now();
     const pushResult = await handler.push(
       transformedData,
@@ -150,7 +171,7 @@ export async function executeIntegration(
       step: 'push',
       direction: 'outbound',
       service: handler.destinationService,
-      requestUrl: `JustCall API - Create contact`,
+      requestUrl: `${handler.destinationService} API - Push`,
       requestMethod: 'POST',
       requestBody: transformedData as Record<string, unknown>,
       responseStatus: pushResult.responseStatus,

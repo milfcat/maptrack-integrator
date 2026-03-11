@@ -1,11 +1,13 @@
 'use client';
 
+import { useState } from 'react';
 import { PageHeader } from '@/components/shared/page-header';
 import { StatsCards, StatsCardsSkeleton } from '@/components/dashboard/stats-cards';
 import { ActivityChart, ActivityChartSkeleton } from '@/components/dashboard/activity-chart';
 import { useStats } from '@/hooks/use-stats';
 import { useLogs } from '@/hooks/use-logs';
 import { StatusBadge } from '@/components/logs/status-badge';
+import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
@@ -14,11 +16,30 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Inbox } from 'lucide-react';
+import { Inbox, Play, Loader2, Check, AlertCircle } from 'lucide-react';
+import axios from 'axios';
 
 export default function DashboardPage() {
-  const { data: stats, isLoading: statsLoading } = useStats();
-  const { data: logs, isLoading: logsLoading } = useLogs({ limit: 10 });
+  const { data: stats, isLoading: statsLoading, refetch: refetchStats } = useStats();
+  const { data: logs, isLoading: logsLoading, refetch: refetchLogs } = useLogs({ limit: 10 });
+  const [pushState, setPushState] = useState<'idle' | 'running' | 'done' | 'error'>('idle');
+  const [pushResult, setPushResult] = useState<{ processed: number; succeeded: number; failed: number } | null>(null);
+
+  async function handleManualPush() {
+    setPushState('running');
+    setPushResult(null);
+    try {
+      const { data } = await axios.post('/api/cron/process-webhooks');
+      setPushResult(data);
+      setPushState('done');
+      refetchStats();
+      refetchLogs();
+      setTimeout(() => setPushState('idle'), 4000);
+    } catch {
+      setPushState('error');
+      setTimeout(() => setPushState('idle'), 4000);
+    }
+  }
 
   const defaultStats = {
     totalIntegrations: 0,
@@ -35,7 +56,33 @@ export default function DashboardPage() {
       <PageHeader
         title="Dashboard"
         description="Overview of all integration activity"
-      />
+      >
+        <div className="flex items-center gap-2">
+          {pushState === 'done' && pushResult && (
+            <span className="text-xs text-muted-foreground">
+              {pushResult.processed === 0
+                ? 'No pending jobs'
+                : `${pushResult.succeeded} pushed, ${pushResult.failed} failed`}
+            </span>
+          )}
+          <Button
+            size="sm"
+            onClick={handleManualPush}
+            disabled={pushState === 'running'}
+          >
+            {pushState === 'running' ? (
+              <Loader2 className="h-4 w-4 animate-spin mr-1.5" />
+            ) : pushState === 'done' ? (
+              <Check className="h-4 w-4 mr-1.5" />
+            ) : pushState === 'error' ? (
+              <AlertCircle className="h-4 w-4 mr-1.5" />
+            ) : (
+              <Play className="h-4 w-4 mr-1.5" />
+            )}
+            {pushState === 'running' ? 'Processing...' : 'Push Now'}
+          </Button>
+        </div>
+      </PageHeader>
 
       <div className="space-y-6">
         {statsLoading ? (

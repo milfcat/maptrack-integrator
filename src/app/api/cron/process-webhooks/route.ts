@@ -23,3 +23,17 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
+// Manual trigger from dashboard UI (protected by basic auth middleware)
+export async function POST() {
+  try {
+    const result = await processWebhookJobs();
+    return NextResponse.json(result);
+  } catch (error) {
+    console.error('Manual process error:', error);
+    return NextResponse.json(
+      { error: 'Processing failed' },
+      { status: 500 }
+    );
+  }
+}

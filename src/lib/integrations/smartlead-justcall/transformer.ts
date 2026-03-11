@@ -3,30 +3,22 @@ import type { FieldMapping } from '@/lib/engine/types';
 export function formatE164AU(phone: string): string {
   if (!phone || phone === '--') return '';
 
-  // Remove all non-digit characters except leading +
-  let cleaned = phone.replace(/[^\d+]/g, '');
+  // Remove all non-digit characters
+  let cleaned = phone.replace(/\D/g, '');
 
-  // Already in E.164 format
-  if (cleaned.startsWith('+')) return cleaned;
-
-  // Australian number starting with 0
+  // Australian number starting with 0 (e.g. 0409338683)
   if (cleaned.startsWith('0') && cleaned.length === 10) {
-    return '+61' + cleaned.slice(1);
+    return '61' + cleaned.slice(1);
   }
 
   // Australian number without leading 0 (9 digits)
   if (cleaned.length === 9 && !cleaned.startsWith('0')) {
-    return '+61' + cleaned;
+    return '61' + cleaned;
   }
 
-  // If it starts with 61 and is 11 digits, add +
+  // Already has country code (61 + 9 digits = 11 digits)
   if (cleaned.startsWith('61') && cleaned.length === 11) {
-    return '+' + cleaned;
-  }
-
-  // Default: prepend + if it looks like a full international number
-  if (cleaned.length >= 10) {
-    return '+' + cleaned;
+    return cleaned;
   }
 
   return cleaned;

@@ -141,6 +141,97 @@ export function useJustCallCampaigns(slug: string) {
   });
 }
 
+export interface SmartLeadCampaign {
+  id: number;
+  name: string;
+  status: string;
+}
+
+export function useSmartLeadCampaigns(slug: string) {
+  return useQuery<SmartLeadCampaign[]>({
+    queryKey: ['smartlead-campaigns', slug],
+    queryFn: async () => {
+      const { data } = await axios.get(
+        `/api/integrations/${slug}/campaigns?service=smartlead`
+      );
+      return data;
+    },
+    enabled: !!slug,
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+export interface CampaignMapping {
+  id: number;
+  integrationId: number;
+  sourceCampaignId: string;
+  sourceCampaignName: string | null;
+  destinationCampaignId: string;
+  destinationCampaignName: string | null;
+  enabled: boolean;
+  createdAt: string;
+}
+
+export function useCampaignMappings(slug: string) {
+  return useQuery<CampaignMapping[]>({
+    queryKey: ['campaign-mappings', slug],
+    queryFn: async () => {
+      const { data } = await axios.get(
+        `/api/integrations/${slug}/campaign-mappings`
+      );
+      return data;
+    },
+    enabled: !!slug,
+  });
+}
+
+export function useSaveCampaignMapping() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      slug,
+      ...mapping
+    }: {
+      slug: string;
+      sourceCampaignId: string;
+      sourceCampaignName?: string;
+      destinationCampaignId: string;
+      destinationCampaignName?: string;
+    }) => {
+      const { data } = await axios.post(
+        `/api/integrations/${slug}/campaign-mappings`,
+        mapping
+      );
+      return data;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ['campaign-mappings', variables.slug],
+      });
+    },
+  });
+}
+
+export function useDeleteCampaignMapping() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ slug, id }: { slug: string; id: number }) => {
+      const { data } = await axios.delete(
+        `/api/integrations/${slug}/campaign-mappings`,
+        { data: { id } }
+      );
+      return data;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ['campaign-mappings', variables.slug],
+      });
+    },
+  });
+}
+
 export interface FieldMappingData {
   id?: number;
   sourceField: string;

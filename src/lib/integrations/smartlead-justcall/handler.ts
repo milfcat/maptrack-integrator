@@ -7,6 +7,7 @@ import type {
   TransformedData,
   PushResult,
 } from '@/lib/engine/types';
+import axios from 'axios';
 import { getLeadById } from '@/lib/services/smartlead';
 import { createContact } from '@/lib/services/justcall';
 import { applyFieldMappings } from './transformer';
@@ -63,11 +64,20 @@ export const smartleadJustcallHandler: IntegrationHandler = {
 
     const lead = await getLeadById(data.sl_email_lead_id, apiKey);
 
+    // Fall back to parsing to_name from webhook if API returns empty names
+    let firstName = lead.first_name;
+    let lastName = lead.last_name;
+    if (!firstName && data.to_name) {
+      const parts = data.to_name.trim().split(/\s+/);
+      firstName = parts[0] ?? '';
+      lastName = parts.slice(1).join(' ');
+    }
+
     return {
       original: data as unknown as Record<string, unknown>,
       enriched: {
-        first_name: lead.first_name,
-        last_name: lead.last_name,
+        first_name: firstName,
+        last_name: lastName || lead.last_name,
         email: lead.email || data.to_email,
         phone_number: lead.phone_number,
         company_name: lead.company_name,
@@ -145,10 +155,20 @@ export const smartleadJustcallHandler: IntegrationHandler = {
         responseBody: response as unknown as Record<string, unknown>,
       };
     } catch (error) {
-      const message =
-        error instanceof Error ? error.message : 'Unknown error';
+      let message = error instanceof Error ? error.message : 'Unknown error';
+      let responseBody: Record<string, unknown> | undefined;
+      let responseStatus: number | undefined;
+
+      if (axios.isAxiosError(error) && error.response) {
+        responseStatus = error.response.status;
+        responseBody = error.response.data as Record<string, unknown>;
+        message = `${error.message}: ${JSON.stringify(error.response.data)}`;
+      }
+
       return {
         success: false,
+        responseStatus,
+        responseBody,
         error: message,
       };
     }

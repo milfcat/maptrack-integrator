@@ -24,16 +24,47 @@ export interface SmartLeadLead {
   created_at: string;
 }
 
+interface SmartLeadLeadResponse {
+  ok: boolean;
+  message: string;
+  data: SmartLeadLead[];
+}
+
+export interface SmartLeadCampaign {
+  id: number;
+  name: string;
+  status: string;
+}
+
+export async function listCampaigns(
+  apiKey: string
+): Promise<SmartLeadCampaign[]> {
+  await waitForToken('smartlead');
+
+  const response = await axios.get<SmartLeadCampaign[]>(
+    `${BASE_URL}/campaigns`,
+    { params: { api_key: apiKey } }
+  );
+
+  // API returns array directly
+  return Array.isArray(response.data) ? response.data : [];
+}
+
 export async function getLeadById(
   leadId: number | string,
   apiKey: string
 ): Promise<SmartLeadLead> {
   await waitForToken('smartlead');
 
-  const response = await axios.get<SmartLeadLead>(
+  const response = await axios.get<SmartLeadLeadResponse>(
     `${BASE_URL}/leads/${leadId}`,
     { params: { api_key: apiKey } }
   );
 
-  return response.data;
+  const lead = response.data.data?.[0];
+  if (!lead) {
+    throw new Error(`Lead not found: ${leadId}`);
+  }
+
+  return lead;
 }
