@@ -390,6 +390,22 @@ function GoogleSheetsConfig({ integration }: { integration: Integration }) {
   );
 }
 
+function SmartleadHubspotConfig() {
+  return (
+    <div className="text-sm text-muted-foreground">
+      <p>
+        SmartLead contacts are automatically created or updated in HubSpot
+        based on email address. No additional configuration is required.
+      </p>
+      <p className="mt-2">
+        Ensure you have set your HubSpot Private App Token in the Credentials
+        tab. The token needs the <strong>crm.objects.contacts.write</strong> and{' '}
+        <strong>crm.objects.contacts.read</strong> scopes.
+      </p>
+    </div>
+  );
+}
+
 export function ConfigForm({ integration }: { integration: Integration }) {
   return (
     <Card className="shadow-sm">
@@ -402,6 +418,8 @@ export function ConfigForm({ integration }: { integration: Integration }) {
       <CardContent className="space-y-4">
         {integration.slug === 'justcall-googlesheets' ? (
           <GoogleSheetsConfig integration={integration} />
+        ) : integration.slug === 'smartlead-hubspot' ? (
+          <SmartleadHubspotConfig />
         ) : (
           <SmartleadJustcallConfig integration={integration} />
         )}

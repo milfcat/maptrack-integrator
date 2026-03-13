@@ -34,6 +34,7 @@ import { Plus, Eye, EyeOff, Pencil, Trash2, Key, KeyRound } from 'lucide-react';
 const SERVICE_OPTIONS = [
   { value: 'smartlead', label: 'SmartLead' },
   { value: 'justcall', label: 'JustCall' },
+  { value: 'hubspot', label: 'HubSpot' },
 ];
 
 const CREDENTIAL_TYPE_OPTIONS: Record<
@@ -47,6 +48,9 @@ const CREDENTIAL_TYPE_OPTIONS: Record<
   justcall: [
     { value: 'api_key', label: 'API Key' },
     { value: 'api_secret', label: 'API Secret' },
+  ],
+  hubspot: [
+    { value: 'access_token', label: 'Private App Token' },
   ],
 };
 

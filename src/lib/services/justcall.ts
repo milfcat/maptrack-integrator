@@ -55,7 +55,19 @@ export async function createContact(
   // Include additional contact fields if available
   if (payload.address) body.address = payload.address;
   if (payload.occupation) body.occupation = payload.occupation;
-  if (payload.linkedin_url) body.linkedin_url = payload.linkedin_url;
+
+  // Company and LinkedIn are custom fields in JustCall Sales Dialer
+  const customFields: Array<{ id: number; value: string }> = [];
+  if (payload.company) {
+    customFields.push({ id: 1163072, value: payload.company as string });
+  }
+  if (payload.linkedin_url) {
+    customFields.push({ id: 1163071, value: payload.linkedin_url });
+    customFields.push({ id: 1181489, value: payload.linkedin_url });
+  }
+  if (customFields.length > 0) {
+    body.custom_fields = customFields;
+  }
 
   // Use campaign-specific endpoint when campaign_id is provided
   const endpoint = payload.campaign_id
@@ -141,6 +153,83 @@ export async function getContact(
       headers: {
         Authorization: `${apiKey}:${apiSecret}`,
         Accept: 'application/json',
+      },
+    }
+  );
+
+  return response.data;
+}
+
+export interface JustCallCampaignContact {
+  id: number;
+  name: string;
+  phone_number: string;
+  email: string;
+  company: string;
+  address: string;
+  occupation: string;
+  linkedin_url: string;
+  notes: string;
+  status: string;
+}
+
+interface JustCallCampaignContactsResponse {
+  status: string;
+  count: number;
+  total_count: number;
+  data: JustCallCampaignContact[];
+}
+
+export async function listCampaignContacts(
+  campaignId: string | number,
+  apiKey: string,
+  apiSecret: string,
+  page = 1,
+  perPage = 50,
+  order?: string
+): Promise<{ contacts: JustCallCampaignContact[]; total: number }> {
+  await waitForToken('justcall');
+
+  const params: Record<string, unknown> = {
+    campaign_id: Number(campaignId),
+    page,
+    per_page: perPage,
+  };
+  if (order) params.order = order;
+
+  const response = await axios.get<JustCallCampaignContactsResponse>(
+    `${BASE_URL}/sales_dialer/campaigns/contacts`,
+    {
+      params,
+      headers: {
+        Authorization: `${apiKey}:${apiSecret}`,
+        Accept: 'application/json',
+      },
+    }
+  );
+
+  return {
+    contacts: response.data.data ?? [],
+    total: response.data.total_count ?? response.data.count ?? 0,
+  };
+}
+
+export async function updateContact(
+  contactId: number,
+  fields: Record<string, unknown>,
+  apiKey: string,
+  apiSecret: string
+): Promise<JustCallResponse> {
+  await waitForToken('justcall');
+
+  const response = await axios.put<JustCallResponse>(
+    `${BASE_URL}/sales_dialer/contacts/${contactId}`,
+    fields,
+    {
+      headers: {
+        Authorization: `${apiKey}:${apiSecret}`,
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
       },
     }
   );

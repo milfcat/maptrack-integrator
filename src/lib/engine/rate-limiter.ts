@@ -8,6 +8,7 @@ interface RateLimitConfig {
 const SERVICE_LIMITS: Record<string, RateLimitConfig> = {
   smartlead: { maxTokens: 60, refillRatePerSecond: 1 }, // 60 req/min
   justcall: { maxTokens: 30, refillRatePerSecond: 0.5 }, // 30 req/min burst
+  hubspot: { maxTokens: 100, refillRatePerSecond: 10 }, // 100 req/10s
 };
 
 function getBucket(service: string) {

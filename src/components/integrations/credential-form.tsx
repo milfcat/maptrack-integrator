@@ -48,6 +48,23 @@ const CREDENTIAL_FIELDS_MAP: Record<string, CredentialField[]> = {
       label: 'JustCall API Secret',
     },
   ],
+  'smartlead-hubspot': [
+    {
+      service: 'smartlead',
+      credentialType: 'api_key',
+      label: 'SmartLead API Key',
+    },
+    {
+      service: 'smartlead',
+      credentialType: 'webhook_secret',
+      label: 'SmartLead Webhook Secret',
+    },
+    {
+      service: 'hubspot',
+      credentialType: 'access_token',
+      label: 'HubSpot Private App Token',
+    },
+  ],
   'justcall-googlesheets': [
     {
       service: 'justcall',
